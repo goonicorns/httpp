@@ -1,0 +1,8 @@
+POST {{app}}/users
+Content-Type: application/json
+Accept: application/json
+
+{
+  "user": "{{USER}}",
+  "password": "{{PASSWORD}}"
+}
