@@ -1,8 +1,13 @@
-// httpp.rs - Nathanael "NateNateNate" Thevarajah
+// httpp - Nathanael "NateNateNate" Thevarajah
 // <natenatenat3@protonmail.com> - Refer to the license for more
 // information.
 
+use crate::backend::lexer::*;
+use crate::backend::parser::*;
+
 use clap::{Parser, Subcommand, ValueEnum};
+
+use std::fs;
 
 /// httpp - A plain text HTTP client with .env support and zero bloat.
 #[derive(Parser, Debug)]
@@ -45,13 +50,16 @@ pub enum RequestType {
     Patch,
     Put,
     Delete,
+    Options,
 }
 
 impl Args {
     pub fn run(&self) {
         match &self.command {
             Some(Command::Exec(exec)) => {
-                println!("Executing file: {}", exec.file);
+                let contents =
+                    fs::read_to_string(&exec.file).expect("Failed to read request file.");
+                let _ = execute(&contents);
             }
             Some(Command::Generate(r#gen)) => {
                 println!(
@@ -64,4 +72,11 @@ impl Args {
             }
         }
     }
+}
+
+fn execute(file: &str) {
+    let token = lex(file);
+    let request = anal(&token).expect("Failed to parse request.");
+
+    println!("Parsed request: {:#?}", request);
 }
