@@ -18,7 +18,7 @@ pub enum Token {
     Unknown(String),
 }
 
-pub fn lex(input: &str) -> Vec<Token> {
+pub fn lex_httpp(input: &str) -> Vec<Token> {
     let mut tokens = Vec::new();
 
     for line in input.lines() {
