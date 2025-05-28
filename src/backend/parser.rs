@@ -17,6 +17,15 @@ enum Body {
     Json(HashMap<String, String>),
 }
 
+pub fn interpolate(s: &str, ctx: &std::collections::HashMap<String, String>) -> String {
+    let mut out = s.to_string();
+    for (key, value) in ctx {
+        let placeholder = format!("{{{{{}}}}}", key);
+        out = out.replace(&placeholder, value);
+    }
+    out
+}
+
 pub fn anal(tokens: &[Token]) -> Result<Request, String> {
     let mut index = 0;
 

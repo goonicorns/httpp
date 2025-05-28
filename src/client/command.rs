@@ -30,6 +30,9 @@ pub enum Command {
 pub struct Exec {
     /// The file to execute.
     pub file: String,
+
+    /// The .env
+    pub env: Option<String>,
 }
 
 #[derive(Parser, Debug)]
@@ -59,7 +62,18 @@ impl Args {
             Some(Command::Exec(exec)) => {
                 let contents =
                     fs::read_to_string(&exec.file).expect("Failed to read request file.");
-                let _ = execute(&contents);
+
+                // If .env is provided.
+                let context = if let Some(env_path) = &exec.env {
+                    dotenvy::from_path_iter(env_path)
+                        .expect("Failed to read .env")
+                        .map(|item| item.unwrap())
+                        .collect::<std::collections::HashMap<_, _>>()
+                } else {
+                    std::collections::HashMap::new()
+                };
+
+                let _ = execute(&contents, &context);
             }
             Some(Command::Generate(r#gen)) => {
                 println!(
@@ -74,9 +88,24 @@ impl Args {
     }
 }
 
-fn execute(file: &str) {
-    let token = lex(file);
-    let request = anal(&token).expect("Failed to parse request.");
+fn execute(file: &str, ctx: &std::collections::HashMap<String, String>) {
+    let token = lex_httpp(file);
+    let mut request = anal(&token).expect("Failed to parse request.");
 
-    println!("Parsed request: {:#?}", request);
+    request.path = interpolate(&request.path, ctx);
+    request.headers = request
+        .headers
+        .into_iter()
+        .map(|(k, v)| (interpolate(&k, ctx), interpolate(&v, ctx)))
+        .collect();
+
+    if let Some(body) = request.body {
+        let interpolated_body = body
+            .into_iter()
+            .map(|(k, v)| (interpolate(&k, ctx), interpolate(&v, ctx)))
+            .collect();
+        request.body = Some(interpolated_body);
+    }
+
+    println!("Parsed request (with ctx applied): {:#?}", request);
 }

@@ -1,4 +1,4 @@
-POST {{app}}/users
+POST {{APP}}/users
 Content-Type: application/json
 Accept: application/json
 
