@@ -63,7 +63,10 @@ impl Args {
                 let contents =
                     fs::read_to_string(&exec.file).expect("Failed to read request file.");
 
-                // If .env is provided.
+                // If an .env path is provided.
+                //
+                // NOTE This will panic if the .env file is malformed.
+                // TODO Handle parse errors gracefully instead of panicking and shii.
                 let context = if let Some(env_path) = &exec.env {
                     dotenvy::from_path_iter(env_path)
                         .expect("Failed to read .env")
