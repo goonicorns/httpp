@@ -2,8 +2,11 @@
 // <natenatenat3@protonmail.com> - Refer to the license for more
 // information.
 
+use crate::backend::exec::send_request;
 use crate::backend::lexer::*;
 use crate::backend::parser::*;
+
+use crate::client::display::display_response;
 
 use clap::{Parser, Subcommand, ValueEnum};
 
@@ -91,7 +94,8 @@ impl Args {
     }
 }
 
-fn execute(file: &str, ctx: &std::collections::HashMap<String, String>) {
+#[tokio::main]
+async fn execute(file: &str, ctx: &std::collections::HashMap<String, String>) {
     let token = lex_httpp(file);
     let mut request = anal(&token).expect("Failed to parse request.");
 
@@ -101,14 +105,16 @@ fn execute(file: &str, ctx: &std::collections::HashMap<String, String>) {
         .into_iter()
         .map(|(k, v)| (interpolate(&k, ctx), interpolate(&v, ctx)))
         .collect();
-
-    if let Some(body) = request.body {
-        let interpolated_body = body
-            .into_iter()
-            .map(|(k, v)| (interpolate(&k, ctx), interpolate(&v, ctx)))
-            .collect();
-        request.body = Some(interpolated_body);
+    if let Some(body) = request.body.take() {
+        request.body = Some(
+            body.into_iter()
+                .map(|(k, v)| (interpolate(&k, ctx), interpolate(&v, ctx)))
+                .collect(),
+        );
     }
 
-    println!("Parsed request (with ctx applied): {:#?}", request);
+    // println!("Parsed request (with ctx applied): {:#?}", request);
+
+    let (status, body) = send_request(request).await;
+    display_response(status, &body);
 }

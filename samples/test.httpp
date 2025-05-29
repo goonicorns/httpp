@@ -5,4 +5,4 @@ Accept: application/json
 {
   "name": "{{USER}}",
   "email": "{{EMAIL}}"
-}
+} 
