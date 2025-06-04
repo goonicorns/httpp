@@ -3,7 +3,6 @@
 // information.
 
 use crate::backend::lexer::Token;
-use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct Request {
@@ -11,10 +10,6 @@ pub struct Request {
     pub path: String,
     pub headers: Vec<(String, String)>,
     pub body: Option<std::collections::HashMap<String, String>>,
-}
-
-enum Body {
-    Json(HashMap<String, String>),
 }
 
 pub fn interpolate(s: &str, ctx: &std::collections::HashMap<String, String>) -> String {
@@ -73,11 +68,10 @@ pub fn anal(tokens: &[Token]) -> Result<Request, String> {
             index += 2;
         }
 
-        if matches!(tokens.get(index), Some(Token::RightBrace)) {
-            index += 1;
-        } else {
+        if !matches!(tokens.get(index), Some(Token::RightBrace)) {
             return Err("Missing right brace in body".into());
         }
+        let _ = index += 1;
 
         body = Some(map);
     }
