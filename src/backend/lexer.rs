@@ -8,14 +8,11 @@ pub enum Token {
     Path(String),
     HeaderKey(String),
     HeaderValue(String),
-    AcceptKey(String),
-    AcceptValue(String),
     LeftBrace,
     RightBrace,
     Interpolation(String),
     StringLiteral(String),
     Newline,
-    Unknown(String),
 }
 
 pub fn lex_httpp(input: &str) -> Vec<Token> {
